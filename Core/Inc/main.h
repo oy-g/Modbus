@@ -65,6 +65,15 @@ void Error_Handler(void);
 #define USART2_DIR_GPIO_Port GPIOA
 #define USART1_DIR_Pin GPIO_PIN_8
 #define USART1_DIR_GPIO_Port GPIOA
+
+#define OU4_Pin GPIO_PIN_12
+#define OU4_GPIO_Port GPIOD
+#define OU3_Pin GPIO_PIN_13
+#define OU3_GPIO_Port GPIOD
+#define OU2_Pin GPIO_PIN_14
+#define OU2_GPIO_Port GPIOD
+#define OU1_Pin GPIO_PIN_15
+#define OU1_GPIO_Port GPIOD
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
