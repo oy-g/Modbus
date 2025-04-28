@@ -20,9 +20,9 @@ void Mb_Task(void *argument)
     
     // /* 初始化波特率切换功能 */
     // xMBBaudrateChangeInit(&mbStack);
-    ULONG ulBaudrate = MB_LoadBaudrateFromFlash();
+    //ULONG ulBaudrate = MB_LoadBaudrateFromFlash();
     //ULONG ulBaudrate = 115200;
-    //ULONG ulBaudrate = 128000;
+    ULONG ulBaudrate = 9600;
     eMBInit(&mbStack, MB_RTU, 0x01, 1, ulBaudrate, MB_PAR_NONE);
     eMBEnable(&mbStack);
     while (1)
