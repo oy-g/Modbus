@@ -18,17 +18,14 @@ void Mb_Task(void *argument)
     mbStack.hardware.uartIRQn = USART1_IRQn;
     mbStack.hardware.timIRQn = TIM4_IRQn;
     
-    // /* 初始化波特率切换功能 */
-    // xMBBaudrateChangeInit(&mbStack);
-    //ULONG ulBaudrate = MB_LoadBaudrateFromFlash();
-    //ULONG ulBaudrate = 115200;
-    ULONG ulBaudrate = 9600;
+
+    ULONG ulBaudrate = MB_LoadBaudrateFromFlash();
     eMBInit(&mbStack, MB_RTU, 0x01, 1, ulBaudrate, MB_PAR_NONE);
     eMBEnable(&mbStack);
     while (1)
     {
         eMBPoll(&mbStack);
-        //MB_BaudrateTask(&mbStack);
+        MB_BaudrateTask(&mbStack);
     }
 }
 

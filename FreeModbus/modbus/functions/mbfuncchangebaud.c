@@ -81,21 +81,76 @@ static BOOL xMBIsValidBaudrate(ULONG ulBaudrate)
 eMBException eMBFuncChangeBaudrate(void *this, UCHAR *pucFrame, USHORT *usLen)
 {
     UNUSED(this);
-    ULONG           ulRequestedBaudrate;
+    ULONG           ulRequestedBaudrate = 0;
     UCHAR          *pucFrameCur;
     eMBException    eStatus = MB_EX_NONE;
     
     /* 检查PDU长度，应为功能码(1字节) + 波特率值(4字节) */
     if( *usLen == (MB_PDU_FUNC_BAUDRATE_SIZE + MB_PDU_SIZE_MIN) )
     {
-        /* 从请求中提取波特率值 (4字节，大端格式) */
-        ulRequestedBaudrate = ((ULONG)pucFrame[MB_PDU_FUNC_BAUDRATE_OFF] << 24) |
-                              ((ULONG)pucFrame[MB_PDU_FUNC_BAUDRATE_OFF + 1] << 16) |
-                              ((ULONG)pucFrame[MB_PDU_FUNC_BAUDRATE_OFF + 2] << 8) |
-                              ((ULONG)pucFrame[MB_PDU_FUNC_BAUDRATE_OFF + 3]);
-        
+        /* 从请求中提取波特率值 (ASCII格式解析) */
+        BOOL isValidASCII = TRUE;
+
+        /* 将ASCII格式的十进制数字转换为实际波特率值 */
+        for (int i = 0; i < 4; i++) {
+            UCHAR byte = pucFrame[MB_PDU_FUNC_BAUDRATE_OFF + i];
+            /* 处理高4位 */
+            UCHAR highNibble = (byte >> 4) & 0x0F;
+            if (highNibble >= 0 && highNibble <= 9) {
+                ulRequestedBaudrate = ulRequestedBaudrate * 10 + highNibble;
+            } else {
+                isValidASCII = FALSE;
+                break;
+            }
+            
+            /* 处理低4位 */
+            UCHAR lowNibble = byte & 0x0F;
+            if (lowNibble >= 0 && lowNibble <= 9) {
+                ulRequestedBaudrate = ulRequestedBaudrate * 10 + lowNibble;
+            } else {
+                isValidASCII = FALSE;
+                break;
+            }
+        }
+
+        // /* 如果ASCII解析失败，尝试传统的二进制格式解析 */
+        // if (!isValidASCII) {
+        //     ulRequestedBaudrate = ((ULONG)pucFrame[MB_PDU_FUNC_BAUDRATE_OFF] << 24) |
+        //                         ((ULONG)pucFrame[MB_PDU_FUNC_BAUDRATE_OFF + 1] << 16) |
+        //                         ((ULONG)pucFrame[MB_PDU_FUNC_BAUDRATE_OFF + 2] << 8) |
+        //                         ((ULONG)pucFrame[MB_PDU_FUNC_BAUDRATE_OFF + 3]);
+        // }
+
         /* 验证波特率值是否有效 */
-        if(xMBIsValidBaudrate(ulRequestedBaudrate))
+        if(ulRequestedBaudrate == 11111111)
+        {
+            /* 特殊波特率码: 11111111 - 执行系统重启 */
+            
+            /* 设置响应帧 */
+            pucFrameCur = &pucFrame[MB_PDU_FUNC_OFF];
+            *usLen = MB_PDU_FUNC_OFF;
+            
+            /* 功能码 */
+            *pucFrameCur++ = MB_FUNC_CHANGE_BAUDRATE;
+            *usLen += 1;
+            
+            /* 回传特殊重启码 */
+            *pucFrameCur++ = 0x11;
+            *pucFrameCur++ = 0x11;
+            *pucFrameCur++ = 0x11;
+            *pucFrameCur++ = 0x11;
+            *usLen += 4;
+            
+            /* 将重启任务延迟执行，确保响应帧能够完全传输出去 */
+            xBaudratePendingChange = TRUE;
+            ulNewBaudrate = 0;  // 使用0作为特殊标志，表示需要重启
+            
+            /* 可选: 保存一个重启标志到Flash，确保在重启后可以检测到这是一次请求的重启 */
+            //MB_SaveResetFlagToFlash(0xA5A5A5A5);
+            
+            return MB_EX_NONE;
+        }
+        else if(xMBIsValidBaudrate(ulRequestedBaudrate))
         {
             /* 设置响应帧 */
             pucFrameCur = &pucFrame[MB_PDU_FUNC_OFF];
@@ -105,17 +160,31 @@ eMBException eMBFuncChangeBaudrate(void *this, UCHAR *pucFrame, USHORT *usLen)
             *pucFrameCur++ = MB_FUNC_CHANGE_BAUDRATE;
             *usLen += 1;
             
-            /* 回传波特率值 */
-            *pucFrameCur++ = (UCHAR)(ulRequestedBaudrate >> 24);
-            *pucFrameCur++ = (UCHAR)(ulRequestedBaudrate >> 16);
-            *pucFrameCur++ = (UCHAR)(ulRequestedBaudrate >> 8);
-            *pucFrameCur++ = (UCHAR)(ulRequestedBaudrate);
+            /* 回传波特率值 - ASCII格式 */
+            ULONG tempBaudrate = ulRequestedBaudrate;
+            UCHAR asciiBytes[4] = {0};
+            
+            /* 将波特率转换为ASCII格式，每字节包含2个十进制数字 */
+            for (int i = 3; i >= 0; i--) {
+                UCHAR lowDigit = tempBaudrate % 10;
+                tempBaudrate /= 10;
+                UCHAR highDigit = tempBaudrate % 10;
+                tempBaudrate /= 10;
+                
+                asciiBytes[i] = (highDigit << 4) | lowDigit;
+            }
+            
+            /* 将ASCII字节写入响应帧 */
+            *pucFrameCur++ = asciiBytes[0];
+            *pucFrameCur++ = asciiBytes[1];
+            *pucFrameCur++ = asciiBytes[2];
+            *pucFrameCur++ = asciiBytes[3];
             *usLen += 4;
             
             /* 保存新波特率，等待切换 */
             ulNewBaudrate = ulRequestedBaudrate;
             xBaudratePendingChange = TRUE;
-                       
+                    
             /* 保存设置到Flash */
             MB_SaveBaudrateToFlash(ulNewBaudrate);
         }
@@ -197,5 +266,29 @@ void MB_SaveBaudrateToFlash(ULONG ulBaudrate)
     HAL_FLASH_Lock();
 }
 
+
+/**
+ * 波特率变更/系统重启任务
+ * 检查是否需要更改波特率或执行系统重启
+ * @param this 协议栈实例
+ */
+void MB_BaudrateTask(void *this)
+{
+    pMB_StackTypeDef p = (pMB_StackTypeDef)this;
+    
+    if (xBaudratePendingChange == TRUE)
+    {
+        if (ulNewBaudrate == 0)
+        {
+            /* 特殊情况：执行系统重启 */
+            
+            /* 先等待一段时间，确保Modbus响应帧已发送完成 */
+            HAL_Delay(200);
+            
+            /* 执行系统重启 */
+            HAL_NVIC_SystemReset();
+        }
+    }
+}
 
 #endif /* MB_FUNC_CHANGE_BAUDRATE_ENABLED > 0 */
