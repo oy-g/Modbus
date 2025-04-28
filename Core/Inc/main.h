@@ -66,14 +66,24 @@ void Error_Handler(void);
 #define USART1_DIR_Pin GPIO_PIN_8
 #define USART1_DIR_GPIO_Port GPIOA
 
-#define OU4_Pin GPIO_PIN_12
+#define OU4_Pin GPIO_PIN_12 //PD12
 #define OU4_GPIO_Port GPIOD
-#define OU3_Pin GPIO_PIN_13
+#define OU3_Pin GPIO_PIN_13 //PD13
 #define OU3_GPIO_Port GPIOD
-#define OU2_Pin GPIO_PIN_14
+#define OU2_Pin GPIO_PIN_14 //PD14
 #define OU2_GPIO_Port GPIOD
-#define OU1_Pin GPIO_PIN_15
+#define OU1_Pin GPIO_PIN_15 //PD15
 #define OU1_GPIO_Port GPIOD
+
+
+#define OU8_Pin GPIO_PIN_6 //PA6
+#define OU8_GPIO_Port GPIOA
+#define OU7_Pin GPIO_PIN_7 //PA7
+#define OU7_GPIO_Port GPIOA
+#define OU6_Pin GPIO_PIN_0 //PB0
+#define OU6_GPIO_Port GPIOB
+#define OU5_Pin GPIO_PIN_1 //PB1
+#define OU5_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

@@ -34,7 +34,11 @@ static const Coil_GPIO_Map coilGpioMap[] = {
     {0, OU1_GPIO_Port, OU1_Pin}, // 第一个线圈映射到OU1
     {1, OU2_GPIO_Port, OU2_Pin}, // 第二个线圈映射到OU2
     {2, OU3_GPIO_Port, OU3_Pin}, // 第三个线圈映射到OU3
-    {3, OU4_GPIO_Port, OU4_Pin}  // 第四个线圈映射到OU4
+    {3, OU4_GPIO_Port, OU4_Pin}, // 第四个线圈映射到OU4
+    {4, OU5_GPIO_Port, OU5_Pin}, // 第五个线圈映射到OU5
+    {5, OU6_GPIO_Port, OU6_Pin}, // 第六个线圈映射到OU6
+    {6, OU7_GPIO_Port, OU7_Pin}, // 第七个线圈映射到OU7
+    {7, OU8_GPIO_Port, OU8_Pin}, // 第八个线圈映射到OU8
 };
 
 #define COIL_GPIO_MAP_SIZE (sizeof(coilGpioMap) / sizeof(coilGpioMap[0]))
