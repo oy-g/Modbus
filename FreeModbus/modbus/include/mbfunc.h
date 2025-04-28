@@ -31,6 +31,10 @@
 #ifndef _MB_FUNC_H
 #define _MB_FUNC_H
 
+#if MB_FUNC_CHANGE_BAUDRATE_ENABLED > 0
+eMBException    eMBFuncChangeBaudrate( void * this, UCHAR * pucFrame, USHORT * usLen );
+#endif
+
 #ifdef __cplusplus
 PR_BEGIN_EXTERN_C
 #endif

@@ -121,4 +121,8 @@ PR_BEGIN_EXTERN_C
 #define MB_MASTER_TOTAL_SLAVE_NUM               ( 16 )
 #endif
 
+/*! \brief If the <em>Change Baudrate</em> function should be enabled. */
+/*! \note This function is only available for Modbus RTU. changed by oyg in 0428 */
+#define MB_FUNC_CHANGE_BAUDRATE_ENABLED        (  1 )
+
 #endif

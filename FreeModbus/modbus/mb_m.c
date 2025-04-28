@@ -100,6 +100,11 @@ static xMBFunctionHandler xMasterFuncHandlers[MB_FUNC_HANDLERS_MAX] = {
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
     {MB_FUNC_READ_DISCRETE_INPUTS, eMBMasterFuncReadDiscreteInputs},
 #endif
+
+//oyg define
+#if MB_FUNC_CHANGE_BAUDRATE_ENABLED > 0
+    {MB_FUNC_CHANGE_BAUDRATE, eMBFuncChangeBaudrate}
+
 };
 
 /* ----------------------- Start implementation -----------------------------*/

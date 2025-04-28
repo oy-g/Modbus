@@ -4,6 +4,8 @@
 
 MB_StackTypeDef mbStack = NEW_MB_StackTypeDef;
 
+void MB_BaudrateTask(void * this);
+
 void Mb_Task(void *argument)
 {
     mbStack.hardware.max485.phuart = &huart1;
@@ -17,6 +19,7 @@ void Mb_Task(void *argument)
     while (1)
     {
         eMBPoll(&mbStack);
+        MB_BaudrateTask(&mbStack);
     }
 }
 

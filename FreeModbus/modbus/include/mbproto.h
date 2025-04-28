@@ -54,6 +54,15 @@ PR_BEGIN_EXTERN_C
 #define MB_FUNC_DIAG_GET_COM_EVENT_LOG        ( 12 )
 #define MB_FUNC_OTHER_REPORT_SLAVEID          ( 17 )
 #define MB_FUNC_ERROR                         ( 128 )
+
+/* oyg define */
+
+/* 自定义功能码 - 波特率切换 */
+#define MB_FUNC_CHANGE_BAUDRATE      ( 66 )
+
+/* oyg define END */
+
+
 /* ----------------------- Type definitions ---------------------------------*/
     typedef enum
 {
