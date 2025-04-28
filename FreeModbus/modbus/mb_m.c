@@ -104,7 +104,7 @@ static xMBFunctionHandler xMasterFuncHandlers[MB_FUNC_HANDLERS_MAX] = {
 //oyg define
 #if MB_FUNC_CHANGE_BAUDRATE_ENABLED > 0
     {MB_FUNC_CHANGE_BAUDRATE, eMBFuncChangeBaudrate}
-
+#endif
 };
 
 /* ----------------------- Start implementation -----------------------------*/
