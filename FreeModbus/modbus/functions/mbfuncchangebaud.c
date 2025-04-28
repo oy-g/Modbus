@@ -25,6 +25,7 @@
 #define MB_BAUDRATE_38400                  ( 38400UL )
 #define MB_BAUDRATE_57600                  ( 57600UL )
 #define MB_BAUDRATE_115200                 ( 115200UL )
+#define MB_BAUDRATE_128000                 ( 128000UL )
 
 /* Flash存储相关定义 - STM32F407专用 */
 #define FLASH_USER_BAUDRATE_ADDR           (0x080E0000) /* Sector 11起始地址 */
@@ -63,20 +64,11 @@ static BOOL xMBIsValidBaudrate(ULONG ulBaudrate)
         case MB_BAUDRATE_38400:
         case MB_BAUDRATE_57600:
         case MB_BAUDRATE_115200:
+        case MB_BAUDRATE_128000:
             return TRUE;
         default:
             return FALSE;
     }
-}
-
-/**
- * 控制LED指示灯
- * @param xState TRUE开启，FALSE关闭
- */
-static void vMBSetLED(BOOL xState)
-{
-    HAL_GPIO_WritePin(BAUDRATE_CHANGE_LED, BAUDRATE_CHANGE_LED_PIN, 
-                     xState ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
 /**
@@ -123,10 +115,7 @@ eMBException eMBFuncChangeBaudrate(void *this, UCHAR *pucFrame, USHORT *usLen)
             /* 保存新波特率，等待切换 */
             ulNewBaudrate = ulRequestedBaudrate;
             xBaudratePendingChange = TRUE;
-            
-            /* 闪烁LED指示即将更改波特率 */
-            vMBSetLED(TRUE);
-            
+                       
             /* 保存设置到Flash */
             MB_SaveBaudrateToFlash(ulNewBaudrate);
         }
@@ -134,6 +123,7 @@ eMBException eMBFuncChangeBaudrate(void *this, UCHAR *pucFrame, USHORT *usLen)
         {
             /* 波特率值无效 */
             eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+            //eStatus = ((ULONG)pucFrame[MB_PDU_FUNC_BAUDRATE_OFF] << 24);
         }
     }
     else
@@ -145,68 +135,11 @@ eMBException eMBFuncChangeBaudrate(void *this, UCHAR *pucFrame, USHORT *usLen)
     return eStatus;
 }
 
-/**
- * 检查并执行波特率切换 - 专用于STM32F407的USART1
- * @param this 协议栈实例
- */
-void MB_CheckAndChangeBaudrate(void * this)
-{
-    pMB_StackTypeDef p = (pMB_StackTypeDef)this;
-    
-    if(xBaudratePendingChange)
-    {
-        /* 确保当前使用的是USART1 */
-        if(p->hardware.max485.phuart->Instance != USART1)
-        {
-            /* 不是USART1，取消波特率更改 */
-            xBaudratePendingChange = FALSE;
-            vMBSetLED(FALSE);
-            return;
-        }
-        
-        /* 等待最后一个响应发送完成 */
-        HAL_Delay(100);
-        
-        /* 停止Modbus */
-        eMBDisable(this);
-        
-        /* 禁用USART1中断 */
-        HAL_NVIC_DisableIRQ(USART1_IRQn);
-        
-        /* 重新初始化UART */
-        HAL_UART_DeInit(p->hardware.max485.phuart);
-        p->hardware.max485.phuart->Init.BaudRate = ulNewBaudrate;
-        HAL_UART_Init(p->hardware.max485.phuart);
-        
-        /* 重新启用USART1中断 */
-        HAL_NVIC_SetPriority(USART1_IRQn, 5, 0);
-        HAL_NVIC_EnableIRQ(USART1_IRQn);
-        
-        /* 更新当前波特率记录 */
-        ulCurrentBaudrate = ulNewBaudrate;
-        xBaudratePendingChange = FALSE;
-        
-        /* 重新启用Modbus */
-        eMBEnable(this);
-        
-        /* 关闭LED指示灯 */
-        vMBSetLED(FALSE);
-    }
-}
-
-/**
- * 获取当前波特率
- * @return 当前波特率值
- */
-ULONG MB_GetCurrentBaudrate(void)
-{
-    return ulCurrentBaudrate;
-}
 
 /**
  * 从Flash读取波特率设置 - STM32F407专用实现
  */
-void MB_LoadBaudrateFromFlash(void)
+ULONG MB_LoadBaudrateFromFlash(void)
 {
     ULONG ulSavedBaudrate = *(__IO ULONG*)(FLASH_USER_BAUDRATE_ADDR);
     
@@ -214,7 +147,14 @@ void MB_LoadBaudrateFromFlash(void)
     if(xMBIsValidBaudrate(ulSavedBaudrate))
     {
         ulCurrentBaudrate = ulSavedBaudrate;
+        return ulSavedBaudrate;
     }
+    else
+    {
+        /* 无效值，返回默认波特率 */
+        return MB_BAUDRATE_115200;
+    }
+    
 }
 
 /**
@@ -249,7 +189,7 @@ void MB_SaveBaudrateToFlash(ULONG ulBaudrate)
                            ulBaudrate) != HAL_OK)
         {
             /* 写入失败，点亮LED2指示错误 */
-            HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
+            //HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
         }
     }
     
@@ -257,13 +197,5 @@ void MB_SaveBaudrateToFlash(ULONG ulBaudrate)
     HAL_FLASH_Lock();
 }
 
-/**
- * 在主循环中调用的检查函数
- */
-void MB_BaudrateTask(void * this)
-{
-    /* 检查是否需要更改波特率 */
-    MB_CheckAndChangeBaudrate(this);
-}
 
 #endif /* MB_FUNC_CHANGE_BAUDRATE_ENABLED > 0 */

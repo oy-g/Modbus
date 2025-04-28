@@ -95,6 +95,11 @@ static xMBFunctionHandler xFuncHandlers[MB_FUNC_HANDLERS_MAX] = {
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
     {MB_FUNC_READ_DISCRETE_INPUTS, eMBFuncReadDiscreteInputs},
 #endif
+
+//oyg define
+#if MB_FUNC_CHANGE_BAUDRATE_ENABLED > 0
+    {MB_FUNC_CHANGE_BAUDRATE, eMBFuncChangeBaudrate}
+#endif
 };
 
 /* ----------------------- Start implementation -----------------------------*/
@@ -324,6 +329,7 @@ eMBErrorCode eMBPoll( void * this )
                     /* An exception occured. Build an error frame. */
                     usLength = 0;
                     ucMBFrame[usLength++] = ( UCHAR )( ucFunctionCode | MB_FUNC_ERROR );
+                    //ucMBFrame[usLength++] = ( UCHAR )( ucFunctionCode);
                     ucMBFrame[usLength++] = eException;
                 }
                 eStatus = p->peMBFrameSendCur( this, p->ucMBAddress, ucMBFrame, usLength );

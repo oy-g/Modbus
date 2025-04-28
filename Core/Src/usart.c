@@ -20,6 +20,23 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
 
+
+
+/* ----------------------- System includes ----------------------------------*/
+#include "stdlib.h"
+#include "string.h"
+
+/* ----------------------- Platform includes --------------------------------*/
+#include "port.h"
+#include "stm32f4xx_hal.h"
+#include "main.h"
+
+/* ----------------------- Modbus includes ----------------------------------*/
+#include "mb.h"
+#include "mbframe.h"
+#include "mbproto.h"
+#include "mbconfig.h"
+#include "mb_stack.h"
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -37,10 +54,13 @@ void MX_USART1_UART_Init(void)
   /* USER CODE END USART1_Init 0 */
 
   /* USER CODE BEGIN USART1_Init 1 */
-
+  ULONG MB_LoadBaudrateFromFlash(void);
+  
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  //huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = MB_LoadBaudrateFromFlash();
+  //huart1.Init.BaudRate = 128000;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;

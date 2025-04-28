@@ -1,10 +1,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "mb.h"
 #include "mb_stack.h"
+#include "string.h"
 
 MB_StackTypeDef mbStack = NEW_MB_StackTypeDef;
 
 void MB_BaudrateTask(void * this);
+
+ULONG MB_LoadBaudrateFromFlash(void);
 
 void Mb_Task(void *argument)
 {
@@ -14,12 +17,18 @@ void Mb_Task(void *argument)
     mbStack.hardware.phtim = &htim4;
     mbStack.hardware.uartIRQn = USART1_IRQn;
     mbStack.hardware.timIRQn = TIM4_IRQn;
-    eMBInit(&mbStack, MB_RTU, 0x01, 1, 115200, MB_PAR_NONE);
+    
+    // /* 初始化波特率切换功能 */
+    // xMBBaudrateChangeInit(&mbStack);
+    ULONG ulBaudrate = MB_LoadBaudrateFromFlash();
+    //ULONG ulBaudrate = 115200;
+    //ULONG ulBaudrate = 128000;
+    eMBInit(&mbStack, MB_RTU, 0x01, 1, ulBaudrate, MB_PAR_NONE);
     eMBEnable(&mbStack);
     while (1)
     {
         eMBPoll(&mbStack);
-        MB_BaudrateTask(&mbStack);
+        //MB_BaudrateTask(&mbStack);
     }
 }
 
