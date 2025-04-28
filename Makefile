@@ -85,6 +85,7 @@ FreeModbus/modbus/functions/mbfuncholding.c \
 FreeModbus/modbus/functions/mbfuncinput_m.c \
 FreeModbus/modbus/functions/mbfuncinput.c \
 FreeModbus/modbus/functions/mbfuncother.c \
+FreeModbus/modbus/functions/mbfuncotmbfuncchangebaud.c \
 FreeModbus/modbus/rtu/mbcrc.c \
 FreeModbus/modbus/rtu/mbrtu_m.c \
 FreeModbus/modbus/rtu/mbrtu.c \
