@@ -19,7 +19,8 @@ void Mb_Task(void *argument)
     mbStack.hardware.timIRQn = TIM4_IRQn;
     
 
-    ULONG ulBaudrate = MB_LoadBaudrateFromFlash();
+    // ULONG ulBaudrate = MB_LoadBaudrateFromFlash();
+    ULONG ulBaudrate = 115200;
     eMBInit(&mbStack, MB_RTU, 0x01, 1, ulBaudrate, MB_PAR_NONE);
     eMBEnable(&mbStack);
     while (1)
