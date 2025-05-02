@@ -61,35 +61,77 @@ static uint8_t GetCoilBitValue(uint16_t bitIndex)
     return (ucSCoilBuf[byteIndex] & (1 << bitOffset)) ? 1 : 0;
 }
 
+// void Mb_GpioTask(void *argument)
+// {
+//     // 初始化GPIO为输出模式
+//     GPIO_InitTypeDef GPIO_InitStruct = {0};
+    
+//     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    
+//     // 配置所有映射的GPIO
+//     for (uint8_t i = 0; i < COIL_GPIO_MAP_SIZE; i++) {
+//         GPIO_InitStruct.Pin = coilGpioMap[i].pin;
+//         HAL_GPIO_Init(coilGpioMap[i].port, &GPIO_InitStruct);
+//     }
+    
+//     // 主循环，持续更新GPIO状态
+//     while(1)
+//     {
+//         // 根据线圈状态更新所有GPIO
+//         for (uint8_t i = 0; i < COIL_GPIO_MAP_SIZE; i++) {
+//             uint8_t coilState = GetCoilBitValue(coilGpioMap[i].coilBit);
+//             HAL_GPIO_WritePin(
+//                 coilGpioMap[i].port,
+//                 coilGpioMap[i].pin,
+//                 coilState ? GPIO_PIN_SET : GPIO_PIN_RESET
+//             );
+//         }
+        
+//         // 适当延时，避免过于频繁地访问共享数据
+//         osDelay(50); // 每50ms更新一次GPIO状态
+//     }
+// }
+
+
+// 设置线圈缓冲区中指定位的值
+static void SetCoilBitValue(uint16_t bitIndex, uint8_t value)
+{
+    uint16_t byteIndex = bitIndex / 8;
+    uint8_t bitOffset = bitIndex % 8;
+    
+    if (value)
+        ucSCoilBuf[byteIndex] |= (1 << bitOffset);   // 设置位
+    else
+        ucSCoilBuf[byteIndex] &= ~(1 << bitOffset);  // 清除位
+}
+
 void Mb_GpioTask(void *argument)
 {
-    // 初始化GPIO为输出模式
+    // 初始化GPIO为输入模式
     GPIO_InitTypeDef GPIO_InitStruct = {0};
     
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;  // 使用下拉电阻，确保不连接时为低电平
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     
-    // 配置所有映射的GPIO
+    // 配置所有映射的GPIO为输入
     for (uint8_t i = 0; i < COIL_GPIO_MAP_SIZE; i++) {
         GPIO_InitStruct.Pin = coilGpioMap[i].pin;
         HAL_GPIO_Init(coilGpioMap[i].port, &GPIO_InitStruct);
     }
     
-    // 主循环，持续更新GPIO状态
+    // 主循环，持续读取GPIO状态并更新线圈值
     while(1)
     {
-        // 根据线圈状态更新所有GPIO
+        // 读取所有GPIO状态并更新对应的线圈值
         for (uint8_t i = 0; i < COIL_GPIO_MAP_SIZE; i++) {
-            uint8_t coilState = GetCoilBitValue(coilGpioMap[i].coilBit);
-            HAL_GPIO_WritePin(
-                coilGpioMap[i].port,
-                coilGpioMap[i].pin,
-                coilState ? GPIO_PIN_SET : GPIO_PIN_RESET
-            );
+            uint8_t gpioState = HAL_GPIO_ReadPin(coilGpioMap[i].port, coilGpioMap[i].pin);
+            SetCoilBitValue(coilGpioMap[i].coilBit, gpioState);
         }
         
-        // 适当延时，避免过于频繁地访问共享数据
-        osDelay(50); // 每50ms更新一次GPIO状态
+        // 适当延时，避免过于频繁地访问硬件
+        osDelay(50); // 每50ms读取一次GPIO状态
     }
 }
