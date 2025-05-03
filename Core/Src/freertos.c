@@ -74,6 +74,8 @@ const osThreadAttr_t defaultTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 
+/* Private function prototypes -----------------------------------------------*/
+/* USER CODE BEGIN FunctionPrototypes */
 osThreadId_t gpioTaskHandle;
 const osThreadAttr_t gpioTask_attributes = {
   .name = "mbGpioTask",
@@ -81,22 +83,18 @@ const osThreadAttr_t gpioTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 
-/* Private function prototypes -----------------------------------------------*/
-/* USER CODE BEGIN FunctionPrototypes */
-
-/* USER CODE END FunctionPrototypes */
-
-void StartDefaultTask(void *argument);
-
 void Mb_m_Task(void *argument);
 
 void Mb_m_ComTask(void *argument);
 
 void Mb_Task(void *argument);
 
-void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
-
 void Mb_GpioTask(void *argument);
+/* USER CODE END FunctionPrototypes */
+
+void StartDefaultTask(void *argument);
+
+void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
   * @brief  FreeRTOS initialization
@@ -134,9 +132,10 @@ void MX_FREERTOS_Init(void) {
   mb_m_ComTaskHandle = osThreadNew(Mb_m_ComTask, NULL, &mb_m_ComTask_attributes);
   mb_TaskHandle = osThreadNew(Mb_Task, NULL, &mb_Task_attributes);
   /* USER CODE END RTOS_THREADS */
-  gpioTaskHandle = osThreadNew(Mb_GpioTask, NULL, &gpioTask_attributes);
+
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
+  gpioTaskHandle = osThreadNew(Mb_GpioTask, NULL, &gpioTask_attributes);
   /* USER CODE END RTOS_EVENTS */
 
 }
@@ -150,8 +149,8 @@ void MX_FREERTOS_Init(void) {
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
-  #include "iwdg.h"
   /* USER CODE BEGIN StartDefaultTask */
+  #include "iwdg.h"
   /* Infinite loop */
   for(;;)
   {
