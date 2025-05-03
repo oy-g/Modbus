@@ -284,3 +284,34 @@ eMBErrorCode eMBRegDiscreteCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT us
     return eStatus;
 }
 
+/* 线程安全的线圈读取函数 */
+eMBErrorCode MB_SafeGetCoil(USHORT usCoilAddr, UCHAR* pucValue)
+{
+    UCHAR ucBuf[1];
+    USHORT usAddress = usCoilAddr;
+    eMBErrorCode eStatus;
+    
+    /* 调用标准回调函数读取线圈值 */
+    eStatus = eMBRegCoilsCB(ucBuf, usAddress, 1, MB_REG_READ);
+    if (eStatus == MB_ENOERR) {
+        *pucValue = ucBuf[0] & 0x01;
+    }
+    
+    return eStatus;
+}
+
+/* 线程安全的线圈写入函数 */
+eMBErrorCode MB_SafeSetCoil(USHORT usCoilAddr, UCHAR ucValue)
+{
+    UCHAR ucBuf[1];
+    USHORT usAddress = usAddress = usCoilAddr;
+    eMBErrorCode eStatus;
+    
+    /* 将值转换为Modbus格式 */
+    ucBuf[0] = ucValue ? 1 : 0;
+    
+    /* 调用标准回调函数设置线圈值 */
+    eStatus = eMBRegCoilsCB(ucBuf, usAddress, 1, MB_REG_WRITE);
+    
+    return eStatus;
+}

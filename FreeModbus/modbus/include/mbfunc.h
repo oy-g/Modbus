@@ -35,6 +35,10 @@
 eMBException    eMBFuncChangeBaudrate( void * this, UCHAR * pucFrame, USHORT * usLen );
 #endif
 
+#if MB_FUNC_CHANGE_T35_ENABLED > 0
+eMBException    eMBFuncChangeT35( void * this, UCHAR * pucFrame, USHORT * usLen );
+#endif
+
 #ifdef __cplusplus
 PR_BEGIN_EXTERN_C
 #endif

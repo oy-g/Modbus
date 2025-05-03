@@ -2,8 +2,14 @@
 #include "mb.h"
 #include "mb_m.h"
 #include "mb_m_stack.h"
+#include "user_mb_app.h" // 添加头文件引用访问函数
 
 MB_M_StackTypeDef mbMasterStack = NEW_MB_M_StackTypeDef;
+
+extern const USHORT usSCoilStart;
+/* 线程安全的线圈读取写入函数声明 */
+extern eMBErrorCode MB_SafeGetCoil(USHORT usCoilAddr, UCHAR* pucValue);
+extern eMBErrorCode MB_SafeSetCoil(USHORT usCoilAddr, UCHAR ucValue);
 
 void Mb_m_Task(void *argument)
 {
@@ -21,29 +27,19 @@ void Mb_m_Task(void *argument)
     }
 }
 
-// void Mb_m_ComTask(void *argument)
-// {
-//     for (;;)
-//     {
-//         eMBMasterReqReadHoldingRegister(&mbMasterStack, 1, 1, 1, 100);
-//         osDelay(300);
-//     }
-// }
-
-/* Includes ------------------------------------------------------------------*/
-
-extern UCHAR ucSCoilBuf[];      // 外部线圈缓冲区
-extern USHORT usSCoilStart;     // 线圈起始地址
-
-
-// 获取指定位的线圈状态
-static BOOL GetCoilStatus(UCHAR *pucCoilBuf, USHORT usCoilAddr)
+/* 使用安全函数获取线圈值 */
+static BOOL GetCoilStatusSafe(USHORT usCoilAddr)
 {
-    USHORT usCoilIndex = usCoilAddr - usSCoilStart;
-    UCHAR ucByteIndex = usCoilIndex / 8;
-    UCHAR ucBitIndex = usCoilIndex % 8;
+    UCHAR ucValue = 0;
     
-    return (pucCoilBuf[ucByteIndex] & (1 << ucBitIndex)) ? TRUE : FALSE;
+    // 使用安全函数获取线圈值
+    if (MB_SafeGetCoil(usCoilAddr, &ucValue) == MB_ENOERR)
+    {
+        return ucValue ? TRUE : FALSE;
+    }
+    
+    // 如果发生错误，返回默认值FALSE
+    return FALSE;
 }
 
 void Mb_m_ComTask(void *argument)
@@ -63,14 +59,16 @@ void Mb_m_ComTask(void *argument)
         // 循环遍历8个线圈
         for (usCurrentCoil = 0; usCurrentCoil < 8; usCurrentCoil++)
         {
-            // 获取线圈状态
-            xCoilStatus = GetCoilStatus(ucSCoilBuf, usSCoilStart + usCurrentCoil);
+            // 使用安全函数获取线圈状态
+            // 注意：Modbus线圈地址从1开始，而不是从0开始
+            USHORT usCoilAddr = usSCoilStart + usCurrentCoil + 1;
+            xCoilStatus = GetCoilStatusSafe(usCoilAddr);
             
             // 向从机发送写单个线圈命令
             eMBMasterReqWriteCoil(
                 &mbMasterStack,   // Modbus主机栈实例
                 usSlaveAddr,      // 从机地址
-                usSCoilStart + usCurrentCoil, // 线圈地址
+                usCoilAddr,       // 线圈地址(已加1处理)
                 xCoilStatus ? 0xFF00 : 0x0000, // 线圈值(ON/OFF)
                 ucTimeoutMs       // 超时时间
             );

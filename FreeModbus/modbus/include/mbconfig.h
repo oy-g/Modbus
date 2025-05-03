@@ -125,4 +125,8 @@ PR_BEGIN_EXTERN_C
 /*! \note This function is only available for Modbus RTU. changed by oyg in 0428 */
 #define MB_FUNC_CHANGE_BAUDRATE_ENABLED        (  1 )
 
+/*! \brief If the <em>Change T3.5</em> function should be enabled. */
+/*! \note This function is only available for Modbus RTU. changed by oyg in 0503 */
+#define MB_FUNC_CHANGE_T35_ENABLED         (  1 ) 
+
 #endif

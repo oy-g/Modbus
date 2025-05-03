@@ -7,7 +7,12 @@ MB_StackTypeDef mbStack = NEW_MB_StackTypeDef;
 
 void MB_BaudrateTask(void * this);
 
+/* 线程安全的线圈读取写入函数 */
+eMBErrorCode MB_SafeGetCoil(USHORT usCoilAddr, UCHAR* pucValue);
+eMBErrorCode MB_SafeSetCoil(USHORT usCoilAddr, UCHAR ucValue);
+
 ULONG MB_LoadBaudrateFromFlash(void);
+
 
 void Mb_Task(void *argument)
 {
@@ -31,8 +36,9 @@ void Mb_Task(void *argument)
 }
 
 #include "main.h"
-extern UCHAR ucSCoilBuf[];
-extern USHORT usSCoilStart;
+//extern UCHAR ucSCoilBuf[];
+extern const USHORT usSCoilStart;
+
 typedef struct {
     uint16_t coilBit;     // 线圈位索引
     GPIO_TypeDef* port;   // GPIO端口
@@ -41,25 +47,50 @@ typedef struct {
 // 定义线圈到GPIO的映射关系
 
 static const Coil_GPIO_Map coilGpioMap[] = {
-    {0, OU1_GPIO_Port, OU1_Pin}, // 第一个线圈映射到OU1
-    {1, OU2_GPIO_Port, OU2_Pin}, // 第二个线圈映射到OU2
-    {2, OU3_GPIO_Port, OU3_Pin}, // 第三个线圈映射到OU3
-    {3, OU4_GPIO_Port, OU4_Pin}, // 第四个线圈映射到OU4
-    {4, OU5_GPIO_Port, OU5_Pin}, // 第五个线圈映射到OU5
-    {5, OU6_GPIO_Port, OU6_Pin}, // 第六个线圈映射到OU6
-    {6, OU7_GPIO_Port, OU7_Pin}, // 第七个线圈映射到OU7
-    {7, OU8_GPIO_Port, OU8_Pin}, // 第八个线圈映射到OU8
+    {1, OU1_GPIO_Port, OU1_Pin}, // 第一个线圈映射到OU1
+    {2, OU2_GPIO_Port, OU2_Pin}, // 第二个线圈映射到OU2
+    {3, OU3_GPIO_Port, OU3_Pin}, // 第三个线圈映射到OU3
+    {4, OU4_GPIO_Port, OU4_Pin}, // 第四个线圈映射到OU4
+    {5, OU5_GPIO_Port, OU5_Pin}, // 第五个线圈映射到OU5
+    {6, OU6_GPIO_Port, OU6_Pin}, // 第六个线圈映射到OU6
+    {7, OU7_GPIO_Port, OU7_Pin}, // 第七个线圈映射到OU7
+    {8, OU8_GPIO_Port, OU8_Pin}, // 第八个线圈映射到OU8
 };
 
 #define COIL_GPIO_MAP_SIZE (sizeof(coilGpioMap) / sizeof(coilGpioMap[0]))
 
-// 从线圈缓冲区获取指定位的值
+/* 替换原来直接访问缓冲区的函数 */
+
+// 使用安全函数获取线圈值
 static uint8_t GetCoilBitValue(uint16_t bitIndex)
 {
-    uint16_t byteIndex = bitIndex / 8;
-    uint8_t bitOffset = bitIndex % 8;
-    return (ucSCoilBuf[byteIndex] & (1 << bitOffset)) ? 1 : 0;
+    UCHAR ucValue = 0;
+    // 注意：Modbus地址从1开始，而不是从0开始
+    USHORT usAddress = usSCoilStart + bitIndex ; 
+    
+    // 使用安全函数获取线圈值
+    if (MB_SafeGetCoil(usAddress, &ucValue) == MB_ENOERR)
+    {
+        return ucValue ? 1 : 0;
+    }
+    
+    // 如果发生错误，返回默认值0
+    return 0;
 }
+
+// 使用安全函数设置线圈值
+static void SetCoilBitValue(uint16_t bitIndex, uint8_t value)
+{
+    // 注意：Modbus地址从1开始，而不是从0开始
+    USHORT usAddress = usSCoilStart + bitIndex ;
+    
+    // 使用安全函数设置线圈值
+    MB_SafeSetCoil(usAddress, value ? 1 : 0);
+    
+    // 这里不需要检查返回值，因为原函数没有返回值
+    // 但在实际应用中，建议检查返回值并处理可能的错误
+}
+
 
 // void Mb_GpioTask(void *argument)
 // {
@@ -93,19 +124,6 @@ static uint8_t GetCoilBitValue(uint16_t bitIndex)
 //         osDelay(50); // 每50ms更新一次GPIO状态
 //     }
 // }
-
-
-// 设置线圈缓冲区中指定位的值
-static void SetCoilBitValue(uint16_t bitIndex, uint8_t value)
-{
-    uint16_t byteIndex = bitIndex / 8;
-    uint8_t bitOffset = bitIndex % 8;
-    
-    if (value)
-        ucSCoilBuf[byteIndex] |= (1 << bitOffset);   // 设置位
-    else
-        ucSCoilBuf[byteIndex] &= ~(1 << bitOffset);  // 清除位
-}
 
 void Mb_GpioTask(void *argument)
 {

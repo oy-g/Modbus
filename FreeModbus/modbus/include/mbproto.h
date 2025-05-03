@@ -60,6 +60,9 @@ PR_BEGIN_EXTERN_C
 /* 自定义功能码 - 波特率切换 */
 #define MB_FUNC_CHANGE_BAUDRATE      ( 66 )
 
+/* 自定义功能码 - T35修改 */
+#define MB_FUNC_CHANGE_T35        ( 67 ) 
+
 /* oyg define END */
 
 

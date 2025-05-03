@@ -98,8 +98,13 @@ static xMBFunctionHandler xFuncHandlers[MB_FUNC_HANDLERS_MAX] = {
 
 //oyg define
 #if MB_FUNC_CHANGE_BAUDRATE_ENABLED > 0
-    {MB_FUNC_CHANGE_BAUDRATE, eMBFuncChangeBaudrate}
+    {MB_FUNC_CHANGE_BAUDRATE, eMBFuncChangeBaudrate},
 #endif
+
+#if MB_FUNC_CHANGE_T35_ENABLED > 0
+    {MB_FUNC_CHANGE_T35, eMBFuncChangeT35}
+#endif
+
 };
 
 /* ----------------------- Start implementation -----------------------------*/
@@ -297,6 +302,7 @@ eMBErrorCode eMBPoll( void * this )
                 /* Check if the frame is for us. If not ignore the frame. */
                 if( ( ucRcvAddress == p->ucMBAddress ) || ( ucRcvAddress == MB_ADDRESS_BROADCAST ) )
                 {
+                    // 加上一个计数位++的东西
                     goto EV_EXECUTE_LABLE;
                 }
             }
