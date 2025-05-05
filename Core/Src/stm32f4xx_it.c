@@ -57,10 +57,8 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
 extern UART_HandleTypeDef huart1;
-extern UART_HandleTypeDef huart2;
 extern TIM_HandleTypeDef htim5;
 
 /* USER CODE BEGIN EV */
@@ -167,20 +165,6 @@ void DebugMon_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles TIM3 global interrupt.
-  */
-void TIM3_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM3_IRQn 0 */
-
-  /* USER CODE END TIM3_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim3);
-  /* USER CODE BEGIN TIM3_IRQn 1 */
-
-  /* USER CODE END TIM3_IRQn 1 */
-}
-
-/**
   * @brief This function handles TIM4 global interrupt.
   */
 void TIM4_IRQHandler(void)
@@ -226,40 +210,6 @@ void USART1_IRQHandler(void)
     __HAL_UART_CLEAR_PEFLAG(&huart1);
   }
   /* USER CODE END USART1_IRQn 1 */
-}
-
-/**
-  * @brief This function handles USART2 global interrupt.
-  */
-void USART2_IRQHandler(void)
-{
-  /* USER CODE BEGIN USART2_IRQn 0 */
-
-  /* USER CODE END USART2_IRQn 0 */
-  HAL_UART_IRQHandler(&huart2);
-  /* USER CODE BEGIN USART2_IRQn 1 */
-  uint32_t isrflags = READ_REG(huart2.Instance->SR);
-  uint32_t cr1its = READ_REG(huart2.Instance->CR1);
-
-  uint32_t errorflags = 0x00U;
-  /* If no error occurs */
-  errorflags = (isrflags & (uint32_t)(USART_SR_PE | USART_SR_FE | USART_SR_ORE | USART_SR_NE));
-
-  /* UART in mode Receiver -------------------------------------------------*/
-  if (((isrflags & USART_SR_RXNE) != RESET) && ((cr1its & USART_CR1_RXNEIE) != RESET))
-  {
-    mbMasterStack.peMBMasterFrameCBByteReceivedCur((void *)&mbMasterStack);
-  }
-  if (((isrflags & USART_SR_TXE) != RESET) && ((cr1its & USART_CR1_TXEIE) != RESET))
-  {
-    mbMasterStack.peMBMasterFrameCBTransmitterEmptyCur((void *)&mbMasterStack);
-  }
-
-  if (errorflags == SET)
-  {
-    __HAL_UART_CLEAR_PEFLAG(&huart1);
-  }
-  /* USER CODE END USART2_IRQn 1 */
 }
 
 /**

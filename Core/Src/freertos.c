@@ -83,9 +83,9 @@ const osThreadAttr_t gpioTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 
-void Mb_m_Task(void *argument);
+//void Mb_m_Task(void *argument);
 
-void Mb_m_ComTask(void *argument);
+//void Mb_m_ComTask(void *argument);
 
 void Mb_Task(void *argument);
 
@@ -128,8 +128,8 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  mb_m_TaskHandle = osThreadNew(Mb_m_Task, NULL, &mb_m_Task_attributes);
-  mb_m_ComTaskHandle = osThreadNew(Mb_m_ComTask, NULL, &mb_m_ComTask_attributes);
+  //mb_m_TaskHandle = osThreadNew(Mb_m_Task, NULL, &mb_m_Task_attributes);
+  //mb_m_ComTaskHandle = osThreadNew(Mb_m_ComTask, NULL, &mb_m_ComTask_attributes);
   mb_TaskHandle = osThreadNew(Mb_Task, NULL, &mb_Task_attributes);
   /* USER CODE END RTOS_THREADS */
 

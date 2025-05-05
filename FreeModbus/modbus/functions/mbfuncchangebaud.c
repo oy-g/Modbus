@@ -39,7 +39,7 @@
 eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
 static BOOL     xMBIsValidBaudrate(ULONG ulBaudrate);
 static void     vMBSetLED(BOOL xState);
-
+void MB_SaveBaudrateToFlash(ULONG ulBaudrate);
 /* ----------------------- Static variables ---------------------------------*/
 static ULONG    ulCurrentBaudrate = 115200;  // 默认波特率
 static ULONG    ulNewBaudrate = 0;
