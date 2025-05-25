@@ -2,7 +2,7 @@
 #include "mb.h"
 #include "mb_stack.h"
 #include "string.h"
-
+// 换成串口2试试
 MB_StackTypeDef mbStack = NEW_MB_StackTypeDef;
 
 void MB_BaudrateTask(void * this);
@@ -16,15 +16,15 @@ ULONG MB_LoadBaudrateFromFlash(void);
 
 void Mb_Task(void *argument)
 {
-    mbStack.hardware.max485.phuart = &huart1;
-    mbStack.hardware.max485.dirPin = USART1_DIR_Pin;
-    mbStack.hardware.max485.dirPort = USART1_DIR_GPIO_Port;
+    mbStack.hardware.max485.phuart = &huart2;
+    mbStack.hardware.max485.dirPin = USART2_DIR_Pin;
+    mbStack.hardware.max485.dirPort = USART2_DIR_GPIO_Port;
     mbStack.hardware.phtim = &htim4;
-    mbStack.hardware.uartIRQn = USART1_IRQn;
+    mbStack.hardware.uartIRQn = USART2_IRQn;
     mbStack.hardware.timIRQn = TIM4_IRQn;
     
 
-    // ULONG ulBaudrate = MB_LoadBaudrateFromFlash();
+    //ULONG ulBaudrate = MB_LoadBaudrateFromFlash();
     ULONG ulBaudrate = 115200;
     eMBInit(&mbStack, MB_RTU, 0x01, 1, ulBaudrate, MB_PAR_NONE);
     eMBEnable(&mbStack);

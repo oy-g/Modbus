@@ -99,6 +99,11 @@ eMBRTUInit( void * this, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, e
         // extern  ULONG ulT35Value;
         ULONG ulMBGetT35Value(void);
         usTimerT35_50us = ulMBGetT35Value();
+        if( usTimerT35_50us < 20 || usTimerT35_50us > 99999 )
+        {
+            usTimerT35_50us = 35;
+        }
+        usTimerT35_50us = 35;
         #endif
         if( xMBPortTimersInit( this, ( USHORT ) usTimerT35_50us ) != TRUE )
         {

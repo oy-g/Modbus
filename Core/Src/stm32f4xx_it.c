@@ -214,11 +214,11 @@ void USART1_IRQHandler(void)
   /* UART in mode Receiver -------------------------------------------------*/
   if (((isrflags & USART_SR_RXNE) != RESET) && ((cr1its & USART_CR1_RXNEIE) != RESET))
   {
-    mbStack.peMBFrameCBByteReceivedCur((void *)&mbStack);
+    mbMasterStack.peMBMasterFrameCBByteReceivedCur((void *)&mbMasterStack);
   }
   if (((isrflags & USART_SR_TXE) != RESET) && ((cr1its & USART_CR1_TXEIE) != RESET))
   {
-    mbStack.peMBFrameCBTransmitterEmptyCur((void *)&mbStack);
+    mbMasterStack.peMBMasterFrameCBTransmitterEmptyCur((void *)&mbMasterStack);
   }
 
   if (errorflags == SET)
@@ -248,11 +248,11 @@ void USART2_IRQHandler(void)
   /* UART in mode Receiver -------------------------------------------------*/
   if (((isrflags & USART_SR_RXNE) != RESET) && ((cr1its & USART_CR1_RXNEIE) != RESET))
   {
-    mbMasterStack.peMBMasterFrameCBByteReceivedCur((void *)&mbMasterStack);
+    mbStack.peMBFrameCBByteReceivedCur((void *)&mbStack);
   }
   if (((isrflags & USART_SR_TXE) != RESET) && ((cr1its & USART_CR1_TXEIE) != RESET))
   {
-    mbMasterStack.peMBMasterFrameCBTransmitterEmptyCur((void *)&mbMasterStack);
+    mbStack.peMBFrameCBTransmitterEmptyCur((void *)&mbStack);
   }
 
   if (errorflags == SET)

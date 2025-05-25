@@ -53,8 +53,7 @@ void MX_USART1_UART_Init(void)
   /* USER CODE END USART1_Init 0 */
 
   /* USER CODE BEGIN USART1_Init 1 */
-  ULONG MB_LoadBaudrateFromFlash(void);
-  // huart1.Init.BaudRate = MB_LoadBaudrateFromFlash();
+  
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
   huart1.Init.BaudRate = 115200;
@@ -83,7 +82,8 @@ void MX_USART2_UART_Init(void)
   /* USER CODE END USART2_Init 0 */
 
   /* USER CODE BEGIN USART2_Init 1 */
-
+  ULONG MB_LoadBaudrateFromFlash(void);
+  //huart2.Init.BaudRate = MB_LoadBaudrateFromFlash();
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
   huart2.Init.BaudRate = 115200;
