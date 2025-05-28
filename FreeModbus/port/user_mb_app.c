@@ -288,7 +288,7 @@ eMBErrorCode eMBRegDiscreteCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT us
 eMBErrorCode MB_SafeGetCoil(USHORT usCoilAddr, UCHAR* pucValue)
 {
     UCHAR ucBuf[1];
-    USHORT usAddress = usCoilAddr;
+    USHORT usAddress = usCoilAddr + S_COIL_START;
     eMBErrorCode eStatus;
     
     /* 调用标准回调函数读取线圈值 */
@@ -304,7 +304,7 @@ eMBErrorCode MB_SafeGetCoil(USHORT usCoilAddr, UCHAR* pucValue)
 eMBErrorCode MB_SafeSetCoil(USHORT usCoilAddr, UCHAR ucValue)
 {
     UCHAR ucBuf[1];
-    USHORT usAddress = usAddress = usCoilAddr;
+    USHORT usAddress = usCoilAddr + S_COIL_START;
     eMBErrorCode eStatus;
     
     /* 将值转换为Modbus格式 */
@@ -312,6 +312,54 @@ eMBErrorCode MB_SafeSetCoil(USHORT usCoilAddr, UCHAR ucValue)
     
     /* 调用标准回调函数设置线圈值 */
     eStatus = eMBRegCoilsCB(ucBuf, usAddress, 1, MB_REG_WRITE);
+    
+    return eStatus;
+}
+
+/**
+ * 线程安全的保持寄存器读取函数
+ *
+ * @param usRegAddr 寄存器地址
+ * @param pusValue 存储寄存器值的指针
+ *
+ * @return eMBErrorCode 操作结果
+ */
+eMBErrorCode MB_SafeGetHoldingReg(USHORT usRegAddr, USHORT* pusValue)
+{
+    UCHAR ucBuf[2];
+    USHORT usAddress = usRegAddr + S_REG_HOLDING_START;
+    eMBErrorCode eStatus;
+    
+    /* 调用标准回调函数读取保持寄存器值 */
+    eStatus = eMBRegHoldingCB(ucBuf, usAddress, 1, MB_REG_READ);
+    if (eStatus == MB_ENOERR) {
+        /* 组合高低字节构成16位寄存器值 */
+        *pusValue = (ucBuf[0] << 8) | ucBuf[1];
+    }
+    
+    return eStatus;
+}
+
+/**
+ * 线程安全的保持寄存器写入函数
+ *
+ * @param usRegAddr 寄存器地址
+ * @param usValue 要写入的值
+ *
+ * @return eMBErrorCode 操作结果
+ */
+eMBErrorCode MB_SafeSetHoldingReg(USHORT usRegAddr, USHORT usValue)
+{
+    UCHAR ucBuf[2];
+    USHORT usAddress = usRegAddr + S_REG_HOLDING_START;
+    eMBErrorCode eStatus;
+    
+    /* 将16位值拆分为Modbus格式的高低字节 */
+    ucBuf[0] = (UCHAR)(usValue >> 8);    /* 高字节 */
+    ucBuf[1] = (UCHAR)(usValue & 0xFF);  /* 低字节 */
+    
+    /* 调用标准回调函数设置保持寄存器值 */
+    eStatus = eMBRegHoldingCB(ucBuf, usAddress, 1, MB_REG_WRITE);
     
     return eStatus;
 }
